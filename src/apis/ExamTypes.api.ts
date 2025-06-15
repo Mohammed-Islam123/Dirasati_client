@@ -1,28 +1,20 @@
-import { API_URL } from "../lib/config";
+import { AxiosError } from "axios";
+import requests from "./agent";
 
 export interface ExamType {
-    examTypeId: number;
-    name: string;
-  }
-  
+  examTypeId: number;
+  name: string;
+}
 
 export async function getExamTypes(): Promise<ExamType[] | string> {
-    const response = await fetch(`${API_URL}/api/ExamTypes`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'text/plain',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      }
-    });
-  
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+  try {
+    const data = await requests.get<ExamType[]>("/api/ExamTypes");
+    return data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(`HTTP error! status: ${error.response?.status}`);
     }
-  
-    try {
-      return await response.json();
-    } catch {
-      return await response.text();
-    }
+    console.error("Failed to fetch exam types:", error);
+    throw error;
   }
-  
+}

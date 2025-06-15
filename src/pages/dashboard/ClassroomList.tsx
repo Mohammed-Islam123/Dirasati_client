@@ -1,15 +1,21 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Search, Filter, MoreVertical, Edit, Trash } from "lucide-react";
-import { getLevels, getSpecializations, Levels, Specializations } from "../../apis/levels.api";
-import { createClassroom, CreateClassroomRequest, deleteClassroom, updateClassroom } from "../../hooks/useClassRoom";
+import {
+  getLevels,
+  getSpecializations,
+  Levels,
+  Specializations,
+} from "../../apis/levels.api";
+import {
+  createClassroom,
+  deleteClassroom,
+  updateClassroom,
+} from "../../hooks/useClassRoom";
 import { Classroom, getClassrooms } from "../../apis/classroom.api";
 import toast from "react-hot-toast";
+import { CreateClassroomRequest } from "../../types/types";
 
-
-interface ClassroomListProps {
-}
-
-const ClassroomList: React.FC<ClassroomListProps> = ({  }) => {
+const ClassroomList = () => {
   const [classrooms, setClassrooms] = useState<Classroom[]>([
     {
       classroomId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -18,7 +24,7 @@ const ClassroomList: React.FC<ClassroomListProps> = ({  }) => {
       specializationId: 101,
       levelName: "Beginner",
       specializationName: "Mathematics",
-      schoolType: "Public"
+      schoolType: "Public",
     },
     {
       classroomId: "1a2b3c4d-5e6f-7g8h-9i0j-k1l2m3n4o5p6",
@@ -27,7 +33,7 @@ const ClassroomList: React.FC<ClassroomListProps> = ({  }) => {
       specializationId: 202,
       levelName: "Advanced",
       specializationName: "Physics",
-      schoolType: "Private"
+      schoolType: "Private",
     },
     {
       classroomId: "9z8y7x6w-5v4u-3t2s-1r0q-p9o8n7m6l5k4",
@@ -36,7 +42,7 @@ const ClassroomList: React.FC<ClassroomListProps> = ({  }) => {
       specializationId: 303,
       levelName: "Beginner",
       specializationName: "Chemistry",
-      schoolType: "Charter"
+      schoolType: "Charter",
     },
     {
       classroomId: "abcd1234-ef56-gh78-ij90-klmn1234opqr",
@@ -45,52 +51,43 @@ const ClassroomList: React.FC<ClassroomListProps> = ({  }) => {
       specializationId: 404,
       levelName: "Intermediate",
       specializationName: "English",
-      schoolType: "Public"
-    }
+      schoolType: "Public",
+    },
   ]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [selectedClassroom, setSelectedClassroom] = useState<Classroom | null>(null);
-  const [levels,setLevel] = useState<Levels[]>([]); 
-  const [specialization,setSpecialization] = useState<Specializations[]>([]);
+  const [selectedClassroom, setSelectedClassroom] = useState<Classroom | null>(
+    null
+  );
+  const [levels, setLevel] = useState<Levels[]>([]);
+  const [specialization, setSpecialization] = useState<Specializations[]>([]);
 
   const [newClass, setNewClass] = useState<CreateClassroomRequest>({
     className: "",
-    levelName: "",
-    specializationName: "",
-    schoolType: "Public"
+    schoolLevelId: 0,
+    specializationId: undefined,
   });
 
-  // get Levels and Specializations 
+  // get Levels and Specializations
   useEffect(() => {
     const fetchLevels = async () => {
-    const data = await getLevels();
-    setLevel(data);
-     
-    }
-fetchLevels();
+      const data = await getLevels();
+      setLevel(data);
+    };
+    fetchLevels();
+  }, []);
 
-  },[])
-
- useEffect(() => {
+  useEffect(() => {
     const fetchData = async () => {
-        const data = await getSpecializations();
-        setSpecialization(data);
-      } 
-    if (Number(localStorage.getItem("shool")) === 3){
-        fetchData()
+      const data = await getSpecializations();
+      setSpecialization(data);
+    };
+    if (Number(localStorage.getItem("shool")) === 3) {
+      fetchData();
     }
-
-  },[])
-
-
-
-
-
-
-
+  }, []);
 
   // Menu state
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -100,73 +97,79 @@ fetchLevels();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState({
     schoolType: "",
-    levelName: ""
+    levelName: "",
   });
-  const [filteredClassrooms, setFilteredClassrooms] = useState<Classroom[]>(classrooms);
+  const [filteredClassrooms, setFilteredClassrooms] =
+    useState<Classroom[]>(classrooms);
 
   // Apply search and filters
   useEffect(() => {
     let result = classrooms;
-    
+
     // Apply search
     if (searchTerm) {
-      result = result.filter(classroom => 
-        classroom.className.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        classroom.specializationName.toLowerCase().includes(searchTerm.toLowerCase())
+      result = result.filter(
+        (classroom) =>
+          classroom.className
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          classroom.specializationName
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
       );
     }
-    
+
     // Apply filters
     if (filters.schoolType) {
-      result = result.filter(classroom => 
-        classroom.schoolType === filters.schoolType
+      result = result.filter(
+        (classroom) => classroom.schoolType === filters.schoolType
       );
     }
-    
+
     if (filters.levelName) {
-      result = result.filter(classroom => 
-        classroom.levelName === filters.levelName
+      result = result.filter(
+        (classroom) => classroom.levelName === filters.levelName
       );
     }
-    
+
     setFilteredClassrooms(result);
   }, [searchTerm, filters, classrooms]);
 
   const fetchData = async () => {
     try {
-      const data:Classroom[]|string = await getClassrooms(); // ✅ use await here
-      if (typeof data === 'string') {
-        
-      } else {
-        setClassrooms(data); 
+      const data: Classroom[] | string = await getClassrooms(); // ✅ use await here
+      if (typeof data !== "string") {
+        setClassrooms(data);
       }
-    } catch (err: any) {
-      toast.error(err.message,{  position: 'top-right'});
+    } catch (err) {
+      if (err instanceof Error) {
+        toast.error(err.message, { position: "top-right" });
+      } else {
+        toast.error("An unknown error occurred", { position: "top-right" });
+      }
     }
   };
   useEffect(() => {
-   
-
     fetchData();
   }, []);
 
   // Get unique values for filter options
-  const schoolTypes = [...new Set(classrooms.map(item => item.schoolType))];
-  const levelNames = [...new Set(classrooms.map(item => item.levelName))];
+  const schoolTypes = [...new Set(classrooms.map((item) => item.schoolType))];
+  const levelNames = [...new Set(classrooms.map((item) => item.levelName))];
 
   const handleAddClassroom = async () => {
     if (isEditMode && selectedClassroom) {
-      
-     await updateClassroom(
-        selectedClassroom.classroomId,
-        newClass
-      );
-      toast.success(`Class update succefully `,{  position: 'bottom-right'});
+      await updateClassroom(selectedClassroom.classroomId, {
+        className: newClass.className,
+        schoolLevelId: newClass.schoolLevelId,
+        specializationId: newClass.specializationId,
+      });
+      toast.success(`Class updated successfully`, { position: "bottom-right" });
     } else {
       // Add new classroom
       await createClassroom(newClass);
     }
-    
+
     await fetchData(); // Refresh the classroom list
     closeDialog();
   };
@@ -175,16 +178,15 @@ fetchLevels();
     setSelectedClassroom(classroom);
     setNewClass({
       className: classroom.className,
-      levelName: classroom.levelName,
-      specializationName: classroom.specializationName,
-      schoolType: classroom.schoolType
+      schoolLevelId: classroom.schoolLevelId,
+      specializationId: classroom.specializationId,
     });
     setIsEditMode(true);
     setIsDialogOpen(true);
     setOpenMenuId(null);
   };
 
-  const handleDeleteClassroom =  (classroom: Classroom) => {
+  const handleDeleteClassroom = (classroom: Classroom) => {
     setSelectedClassroom(classroom);
     setIsDeleteDialogOpen(true);
     setOpenMenuId(null);
@@ -192,19 +194,25 @@ fetchLevels();
 
   const confirmDelete = async () => {
     if (selectedClassroom) {
-      setClassrooms(classrooms.filter(c => c.classroomId !== selectedClassroom.classroomId));
+      setClassrooms(
+        classrooms.filter(
+          (c) => c.classroomId !== selectedClassroom.classroomId
+        )
+      );
       setIsDeleteDialogOpen(false);
       setSelectedClassroom(null);
-      deleteClassroom(selectedClassroom.classroomId)
+      deleteClassroom(selectedClassroom.classroomId);
       console.log("Classroom deleted:", selectedClassroom.classroomId);
-      toast.success("Classroom deleted successfully",{  position: 'bottom-right'});
+      toast.success("Classroom deleted successfully", {
+        position: "bottom-right",
+      });
     }
   };
 
   const resetFilters = () => {
     setFilters({
       schoolType: "",
-      levelName: ""
+      levelName: "",
     });
     setIsFilterOpen(false);
   };
@@ -215,9 +223,8 @@ fetchLevels();
     setSelectedClassroom(null);
     setNewClass({
       className: "",
-      levelName: "",
-      specializationName: "",
-      schoolType: "Public"
+      schoolLevelId: 0,
+      specializationId: undefined,
     });
   };
 
@@ -255,44 +262,56 @@ fetchLevels();
           />
         </div>
         <div className="relative">
-          <button 
+          <button
             onClick={() => setIsFilterOpen(!isFilterOpen)}
             className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
           >
             <Filter className="h-5 w-5 text-gray-500" />
             <span>Filter</span>
           </button>
-          
+
           {isFilterOpen && (
             <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg z-10 p-4 border border-gray-200">
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">School Type</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  School Type
+                </label>
                 <select
                   value={filters.schoolType}
-                  onChange={(e) => setFilters({...filters, schoolType: e.target.value})}
+                  onChange={(e) =>
+                    setFilters({ ...filters, schoolType: e.target.value })
+                  }
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
                 >
                   <option value="">All Types</option>
-                  {schoolTypes.map(type => (
-                    <option key={type} value={type}>{type}</option>
+                  {schoolTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </select>
               </div>
-              
+
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Level
+                </label>
                 <select
                   value={filters.levelName}
-                  onChange={(e) => setFilters({...filters, levelName: e.target.value})}
+                  onChange={(e) =>
+                    setFilters({ ...filters, levelName: e.target.value })
+                  }
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
                 >
                   <option value="">All Levels</option>
-                  {levelNames.map(level => (
-                    <option key={level} value={level}>{level}</option>
+                  {levelNames.map((level) => (
+                    <option key={level} value={level}>
+                      {level}
+                    </option>
                   ))}
                 </select>
               </div>
-              
+
               <div className="flex justify-end">
                 <button
                   onClick={resetFilters}
@@ -310,12 +329,28 @@ fetchLevels();
       {filteredClassrooms.length === 0 && (
         <div className="text-center py-16 bg-white rounded-xl shadow-sm">
           <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-8 w-8 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900">No classrooms found</h3>
-          <p className="mt-1 text-sm text-gray-500">Try adjusting your search or filters to find what you're looking for.</p>
+          <h3 className="text-lg font-medium text-gray-900">
+            No classrooms found
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Try adjusting your search or filters to find what you're looking
+            for.
+          </p>
         </div>
       )}
 
@@ -342,24 +377,24 @@ fetchLevels();
                 >
                   {classroom.schoolType}
                 </span>
-                <button 
+                <button
                   onClick={() => toggleMenu(classroom.classroomId)}
                   className="ml-2 p-1 rounded-full hover:bg-gray-100 transition"
                 >
                   <MoreVertical className="h-4 w-4 text-gray-500" />
                 </button>
-                
+
                 {/* Dropdown menu */}
                 {openMenuId === classroom.classroomId && (
                   <div className="absolute right-0 mt-1 w-36 bg-white rounded-lg shadow-lg z-10 py-1 border border-gray-200">
-                    <button 
+                    <button
                       onClick={() => handleEditClassroom(classroom)}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       <Edit className="h-4 w-4 mr-2" />
                       Edit
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDeleteClassroom(classroom)}
                       className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                     >
@@ -372,12 +407,14 @@ fetchLevels();
             </div>
             <div className="text-gray-600 space-y-2">
               <div>
-                <span className="text-gray-500 text-sm">Level:</span> 
+                <span className="text-gray-500 text-sm">Level:</span>
                 <span className="ml-1 font-medium">{classroom.levelName}</span>
               </div>
               <div>
-                <span className="text-gray-500 text-sm">Specialization:</span> 
-                <span className="ml-1 font-medium">{classroom.specializationName}</span>
+                <span className="text-gray-500 text-sm">Specialization:</span>
+                <span className="ml-1 font-medium">
+                  {classroom.specializationName}
+                </span>
               </div>
               <div className="text-xs text-gray-400 mt-4 truncate">
                 <span>ID:</span> {classroom.classroomId}
@@ -399,53 +436,81 @@ fetchLevels();
                 type="text"
                 placeholder="Class Name"
                 value={newClass.className}
-                onChange={(e) => setNewClass({ ...newClass, className: e.target.value })}
+                onChange={(e) =>
+                  setNewClass({ ...newClass, className: e.target.value })
+                }
                 className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
               />
-            
-            <select
-  value={newClass.levelName}
-  onChange={(e) => setNewClass({ ...newClass, levelName: e.target.value })}
-  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
->
-  {/* Default option */}
-  <option value="" disabled selected>
-    Select level...
-  </option>
 
-  {/* Dynamic options */}
-  {levels.map((level) => (
-    <option key={level.levelId} value={level.levelId}>
-      {level.levelYear} {level.levelYear === 1 ? "ère" : "ème"}
-    </option>
-  ))}
-</select>
-{localStorage.getItem("shool") === "3" &&  <select
-  value={newClass.specializationName}
-  onChange={(e) => setNewClass({ ...newClass, specializationName: e.target.value })}
-  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 ${newClass.levelName === "" ? "opacity-50 cursor-not-allowed" : ""}`}
-  disabled={ newClass.levelName === "" }
->
-  {/* Default option */}
-  <option value="" disabled selected>
-    Select specialization...
-  </option>
-
-  {/* Dynamic options */}
-  {
-   ( newClass.levelName === "10"
-    ? specialization.slice(0, 2)
-    : specialization.slice(2)
-  ).map((spec) => (
-    <option key={spec.specializationId} value={spec.specializationId}>
-    {spec.name} 
-  </option>
-  ))}
-</select>}
-             
               <select
-                value={newClass.schoolType}
-                onChange={(e) => setNewClass({ ...newClass, schoolType: e.target.value })}
+                value={newClass.schoolLevelId || ""}
+                onChange={(e) =>
+                  setNewClass({
+                    ...newClass,
+                    schoolLevelId: parseInt(e.target.value),
+                  })
+                }
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              >
+                {/* Default option */}
+                <option value="" disabled>
+                  Select level...
+                </option>
+
+                {/* Dynamic options */}
+                {levels.map((level) => (
+                  <option key={level.levelId} value={level.levelId}>
+                    {level.levelYear} {level.levelYear === 1 ? "ère" : "ème"}
+                  </option>
+                ))}
+              </select>
+
+              {localStorage.getItem("shool") === "3" && (
+                <select
+                  value={newClass.specializationId || ""}
+                  onChange={(e) =>
+                    setNewClass({
+                      ...newClass,
+                      specializationId: e.target.value
+                        ? parseInt(e.target.value)
+                        : undefined,
+                    })
+                  }
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 ${
+                    !newClass.schoolLevelId
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
+                  disabled={!newClass.schoolLevelId}
+                >
+                  {/* Default option */}
+                  <option value="" disabled>
+                    Select specialization...
+                  </option>
+
+                  {/* Dynamic options */}
+                  {(newClass.schoolLevelId === 10
+                    ? specialization.slice(0, 2)
+                    : specialization.slice(2)
+                  ).map((spec) => (
+                    <option
+                      key={spec.specializationId}
+                      value={spec.specializationId}
+                    >
+                      {spec.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              {/* School Type dropdown stays the same as it's not part of the DTO but used in UI */}
+              <select
+                value={selectedClassroom?.schoolType || "Public"}
+                onChange={(e) =>
+                  setSelectedClassroom((prev) =>
+                    prev ? { ...prev, schoolType: e.target.value } : null
+                  )
+                }
                 className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
               >
                 <option value="Public">Public</option>
@@ -480,7 +545,8 @@ fetchLevels();
               Delete Classroom
             </h2>
             <p className="text-center text-gray-600 mb-6">
-              Are you sure you want to delete "{selectedClassroom.className}"? This action cannot be undone.
+              Are you sure you want to delete "{selectedClassroom.className}"?
+              This action cannot be undone.
             </p>
 
             <div className="flex justify-center space-x-4">

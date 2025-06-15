@@ -1,70 +1,53 @@
 import toast from "react-hot-toast";
-import { API_URL } from "../lib/config";
+import requests from "../apis/agent";
+import { CreateClassroomRequest, UpdateClassroomRequest } from "../types/types";
 
-
-export interface CreateClassroomRequest {
-    className: string;
-    levelName: string;
-    specializationName: string;
-    schoolType:string
-  }
-  
-
-export async function createClassroom(newClass: CreateClassroomRequest): Promise<string> {
-    const response = await fetch(`${API_URL}/api/classrooms`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'text/plain',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        className: newClass.className,
-        schoolLevelId: Number(newClass.levelName),
-        specializationId: Number(newClass.specializationName)
-      })
-    });
-  
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-  
-    const result = await response.text(); 
-    return result;
-  }
- 
- export async function updateClassroom(
-  classroomId: string,
-  data: CreateClassroomRequest
+export async function createClassroom(
+  newClass: CreateClassroomRequest
 ): Promise<string> {
-  const response = await fetch(`${API_URL}/api/classrooms/${classroomId}`, {
-    method: 'PUT',
-    headers: {
-      'Accept': 'text/plain',
-      'Authorization': 'Bearer ' + localStorage.getItem('token'),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
+  try {
+    const payload = {
+      className: newClass.className,
+      schoolLevelId: Number(newClass.schoolLevelId),
+      specializationId: Number(newClass.specializationId),
+    };
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    return await requests.post<string>("/api/classrooms", payload);
+  } catch (error) {
+    if (error instanceof Error) {
+      toast.error(`Error creating classroom: ${error.message}`);
+    } else {
+      toast.error("An unknown error occurred when creating classroom");
+    }
+    throw error;
   }
+}
 
-  return await response.text(); // assuming the API returns plain text
-} 
+export async function updateClassroom(
+  classroomId: string,
+  data: UpdateClassroomRequest
+): Promise<string> {
+  try {
+    return await requests.put<string>(`/api/classrooms/${classroomId}`, data);
+  } catch (error) {
+    if (error instanceof Error) {
+      toast.error(`Error updating classroom: ${error.message}`);
+    } else {
+      toast.error("An unknown error occurred when updating classroom");
+    }
+    throw error;
+  }
+}
 
 export async function deleteClassroom(classroomId: string): Promise<void> {
-  const response = await fetch(`${API_URL}/api/classrooms/${classroomId}`, {
-    method: 'DELETE',
-    headers: {
-      'Accept': '*/*',
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+  try {
+    await requests.delete<void>(`/api/classrooms/${classroomId}`);
+  } catch (error) {
+    if (error instanceof Error) {
+      toast.error(`Error deleting classroom: ${error.message}`);
+    } else {
+      toast.error("An unknown error occurred when deleting classroom");
     }
-  });
-
-  if (!response.ok) {
-      const errorText = await response.text();
-      toast.error(`Error deleting classroom: ${errorText}`);
+    throw error;
   }
-} 
+}

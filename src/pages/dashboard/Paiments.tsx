@@ -1,152 +1,118 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { Plus, CreditCard, Clock, CheckCircle, AlertCircle, X } from "lucide-react"
-
-interface Bill {
-  billId: string
-  title: string
-  description: string
-  amount: number
-  paymentStatus: string
-  createdAt: string
-}
-
-interface NewBill {
-  title: string
-  description: string
-  amount: number
-  schoolLevelId: number
-}
+import type React from "react";
+import { useState } from "react";
+import {
+  Plus,
+  CreditCard,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  X,
+} from "lucide-react";
+import requests from "../../apis/agent";
+import { Bill, NewBill } from "../../types/types";
 
 interface Notification {
-  id: string
-  type: "success" | "error"
-  message: string
+  id: string;
+  type: "success" | "error";
+  message: string;
 }
 
 function Payments() {
-  const [bills, setBills] = useState<Bill[]>([])
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [notifications, setNotifications] = useState<Notification[]>([])
-
-  // Replace with actual values
-  const STUDENT_ID = "44682367-9ae6-4cd9-b087-d3f24cffa119"
-  const BEARER_TOKEN =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4N2FkY2NlOS05NjhiLTRjYjMtOWYxMi0yNjczY2EwMDkyMzkiLCJlbWFpbCI6ImFsaWNlLmpvaG5zb25AZXhhbXBsZS5jb20iLCJqdGkiOiJlNWQ2NTJhNS0zNjA5LTQyZGQtOTIxMS1hMzU3ZmFjODg0YjIiLCJUZWFjaGVySWQiOiI3MzAzMTg1Ni1iZDEzLTRmNWEtOThkMC02ZDEyNmNlZmY3NGYiLCJTY2hvb2xJZCI6ImRmNDE1M2RmLTg2OTEtNGEzYS05ZWJhLTdmYTRhZDExYTExZCIsIlNjaG9vbFR5cGVJZCI6IjMiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJUZWFjaGVyIiwiZXhwIjoxNzQ5NjE0NzIzLCJpc3MiOiJEaXJhc2F0aSIsImF1ZCI6IkRpcmFzYXRpVXNlcnMifQ.2uZ0GSRe-3rIlwa9IfSyv10eH2bKaD9ev-yk9gL41tg"
+  const [bills] = useState<Bill[]>([]);
+  const [loading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const [newBill, setNewBill] = useState<NewBill>({
     title: "",
     description: "",
     amount: 0,
     schoolLevelId: 1,
-  })
+  });
 
   // Notification system
   const addNotification = (type: "success" | "error", message: string) => {
-    const id = Date.now().toString()
-    setNotifications((prev) => [...prev, { id, type, message }])
+    const id = Date.now().toString();
+    setNotifications((prev) => [...prev, { id, type, message }]);
     setTimeout(() => {
-      setNotifications((prev) => prev.filter((n) => n.id !== id))
-    }, 5000)
-  }
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+    }, 5000);
+  };
 
   const removeNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id))
-  }
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
 
-  // Fetch bills for the student
-  const fetchBills = async () => {
-    try {
-      const response = await fetch(`http://localhost:5080/api/Payments/student/${STUDENT_ID}/bills`, {
-        headers: {
-          accept: "text/plain",
-          Authorization: `Bearer ${BEARER_TOKEN}`,
-        },
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setBills(data)
-      } else {
-        addNotification("error", "Failed to fetch bills")
-      }
-    } catch (error) {
-      addNotification("error", "Network error while fetching bills")
-    } finally {
-      setLoading(false)
-    }
-  }
+  // // Fetch bills for the student
+  // const fetchBills = useCallback(async () => {
+  //   try {
+  //     const data = await requests.get<Bill[]>(
+  //       `/api/Payments/student/${STUDENT_ID}/bills`
+  //     );
+  //     setBills(data);
+  //   } catch (error) {
+  //     addNotification("error", "Failed to fetch bills");
+  //     console.log(error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, [STUDENT_ID]);
 
   // Add new bill
   const addBill = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitting(true)
+    e.preventDefault();
+    setSubmitting(true);
 
     try {
-      const response = await fetch("http://localhost:5080/api/Payments/add-bill", {
-        method: "POST",
-        headers: {
-          accept: "text/plain",
-          Authorization: `Bearer ${BEARER_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newBill),
-      })
-
-      if (response.ok) {
-        addNotification("success", "Bill added successfully")
-        setNewBill({ title: "", description: "", amount: 0, schoolLevelId: 1 })
-        setShowAddForm(false)
-        fetchBills() // Refresh the bills list
-      } else {
-        addNotification("error", "Failed to add bill")
-      }
+      await requests.post<void>("/api/Payments/add-bill", newBill);
+      addNotification("success", "Bill added successfully");
+      setNewBill({ title: "", description: "", amount: 0, schoolLevelId: 1 });
+      setShowAddForm(false);
+      // fetchBills(); // Refresh the bills list
     } catch (error) {
-      addNotification("error", "Network error while adding bill")
+      addNotification("error", "Failed to add bill");
+      console.log(error);
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   // Get status badge classes
   const getStatusClasses = (status: string) => {
     switch (status.toLowerCase()) {
       case "paid":
-        return "bg-green-100 text-green-800 border-green-200"
+        return "bg-green-100 text-green-800 border-green-200";
       case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200"
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
       case "overdue":
-        return "bg-red-100 text-red-800 border-red-200"
+        return "bg-red-100 text-red-800 border-red-200";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
-  }
+  };
 
   // Get status icon
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
       case "paid":
-        return <CheckCircle className="h-4 w-4" />
+        return <CheckCircle className="h-4 w-4" />;
       case "pending":
-        return <Clock className="h-4 w-4" />
+        return <Clock className="h-4 w-4" />;
       case "overdue":
-        return <AlertCircle className="h-4 w-4" />
+        return <AlertCircle className="h-4 w-4" />;
       default:
-        return <Clock className="h-4 w-4" />
+        return <Clock className="h-4 w-4" />;
     }
-  }
+  };
 
-  useEffect(() => {
-    fetchBills()
-  }, [])
-
-  const totalAmount = bills.reduce((sum, bill) => sum + bill.amount, 0)
-  const unpaidBills = bills.filter((bill) => bill.paymentStatus.toLowerCase() !== "paid")
-  const unpaidAmount = unpaidBills.reduce((sum, bill) => sum + bill.amount, 0)
+  const totalAmount = bills.reduce((sum, bill) => sum + bill.amount, 0);
+  const unpaidBills = bills.filter(
+    (bill) => bill.paymentStatus.toLowerCase() !== "paid"
+  );
+  const unpaidAmount = unpaidBills.reduce((sum, bill) => sum + bill.amount, 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -177,7 +143,9 @@ function Payments() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Payment Center</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Payment Center
+              </h1>
               <p className="text-gray-600">Manage your bills and payments</p>
             </div>
             <button
@@ -192,16 +160,28 @@ function Payments() {
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Total Bills</h3>
-              <div className="text-2xl font-bold text-gray-900">{bills.length}</div>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">
+                Total Bills
+              </h3>
+              <div className="text-2xl font-bold text-gray-900">
+                {bills.length}
+              </div>
             </div>
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Total Amount</h3>
-              <div className="text-2xl font-bold text-gray-900">${totalAmount.toFixed(2)}</div>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">
+                Total Amount
+              </h3>
+              <div className="text-2xl font-bold text-gray-900">
+                ${totalAmount.toFixed(2)}
+              </div>
             </div>
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Unpaid Amount</h3>
-              <div className="text-2xl font-bold text-red-600">${unpaidAmount.toFixed(2)}</div>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">
+                Unpaid Amount
+              </h3>
+              <div className="text-2xl font-bold text-red-600">
+                ${unpaidAmount.toFixed(2)}
+              </div>
             </div>
           </div>
 
@@ -209,27 +189,37 @@ function Payments() {
           {showAddForm && (
             <div className="bg-white rounded-lg shadow p-6">
               <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">Add New Bill</h2>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Add New Bill
+                </h2>
                 <p className="text-gray-600">Create a new bill for payment</p>
               </div>
               <form onSubmit={addBill} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="title"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
                       Title
                     </label>
                     <input
                       id="title"
                       type="text"
                       value={newBill.title}
-                      onChange={(e) => setNewBill({ ...newBill, title: e.target.value })}
+                      onChange={(e) =>
+                        setNewBill({ ...newBill, title: e.target.value })
+                      }
                       placeholder="Enter bill title"
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="amount"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
                       Amount
                     </label>
                     <input
@@ -237,7 +227,12 @@ function Payments() {
                       type="number"
                       step="0.01"
                       value={newBill.amount}
-                      onChange={(e) => setNewBill({ ...newBill, amount: Number.parseFloat(e.target.value) || 0 })}
+                      onChange={(e) =>
+                        setNewBill({
+                          ...newBill,
+                          amount: Number.parseFloat(e.target.value) || 0,
+                        })
+                      }
                       placeholder="0.00"
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -245,13 +240,18 @@ function Payments() {
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="description"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Description
                   </label>
                   <textarea
                     id="description"
                     value={newBill.description}
-                    onChange={(e) => setNewBill({ ...newBill, description: e.target.value })}
+                    onChange={(e) =>
+                      setNewBill({ ...newBill, description: e.target.value })
+                    }
                     placeholder="Enter bill description"
                     required
                     rows={3}
@@ -259,14 +259,22 @@ function Payments() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="schoolLevelId" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="schoolLevelId"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     School Level ID
                   </label>
                   <input
                     id="schoolLevelId"
                     type="number"
                     value={newBill.schoolLevelId}
-                    onChange={(e) => setNewBill({ ...newBill, schoolLevelId: Number.parseInt(e.target.value) || 1 })}
+                    onChange={(e) =>
+                      setNewBill({
+                        ...newBill,
+                        schoolLevelId: Number.parseInt(e.target.value) || 1,
+                      })
+                    }
                     placeholder="1"
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -295,12 +303,18 @@ function Payments() {
           {/* Bills List */}
           <div className="bg-white rounded-lg shadow">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Your Bills</h2>
-              <p className="text-gray-600">View and manage your payment bills</p>
+              <h2 className="text-xl font-semibold text-gray-900">
+                Your Bills
+              </h2>
+              <p className="text-gray-600">
+                View and manage your payment bills
+              </p>
             </div>
             <div className="p-6">
               {loading ? (
-                <div className="text-center py-8 text-gray-500">Loading bills...</div>
+                <div className="text-center py-8 text-gray-500">
+                  Loading bills...
+                </div>
               ) : bills.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   No bills found. Add your first bill to get started.
@@ -313,20 +327,32 @@ function Payments() {
                         <div className="flex items-start justify-between">
                           <div className="space-y-2 flex-1">
                             <div className="flex items-center gap-2">
-                              <h3 className="font-semibold text-gray-900">{bill.title}</h3>
+                              <h3 className="font-semibold text-gray-900">
+                                {bill.title}
+                              </h3>
                               <span
-                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusClasses(bill.paymentStatus)}`}
+                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusClasses(
+                                  bill.paymentStatus
+                                )}`}
                               >
                                 {getStatusIcon(bill.paymentStatus)}
                                 {bill.paymentStatus}
                               </span>
                             </div>
-                            <p className="text-sm text-gray-600">{bill.description}</p>
+                            <p className="text-sm text-gray-600">
+                              {bill.description}
+                            </p>
                             <div className="flex items-center gap-4 text-sm text-gray-500">
                               <span>
-                                Amount: <span className="font-medium text-gray-900">${bill.amount.toFixed(2)}</span>
+                                Amount:{" "}
+                                <span className="font-medium text-gray-900">
+                                  ${bill.amount.toFixed(2)}
+                                </span>
                               </span>
-                              <span>Created: {new Date(bill.createdAt).toLocaleDateString()}</span>
+                              <span>
+                                Created:{" "}
+                                {new Date(bill.createdAt).toLocaleDateString()}
+                              </span>
                             </div>
                           </div>
                           <div className="flex flex-col gap-2 ml-4">
@@ -339,7 +365,9 @@ function Payments() {
                           </div>
                         </div>
                       </div>
-                      {index < bills.length - 1 && <hr className="my-4 border-gray-200" />}
+                      {index < bills.length - 1 && (
+                        <hr className="my-4 border-gray-200" />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -349,7 +377,7 @@ function Payments() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default Payments
+export default Payments;

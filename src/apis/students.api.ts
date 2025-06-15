@@ -1,4 +1,5 @@
-import { API_URL } from "../lib/config";
+import { AxiosError } from "axios";
+import requests from "./agent";
 
 export interface Student {
   studentId: string;
@@ -22,7 +23,7 @@ export interface StudentDetails {
   firstName: string;
   lastName: string;
   address: string;
-  birthDate: string;         // ISO date string (ex: "2005-02-08")
+  birthDate: string;
   birthPlace: string;
   schoolId: string;
   studentIdNumber: string | null;
@@ -31,67 +32,49 @@ export interface StudentDetails {
   specializationId: number;
   parentRelationshipToStudentTypeId: number;
   photoUrl: string | null;
-  enrollmentDate: string;    // ISO date string (ex: "2025-04-22")
+  enrollmentDate: string;
   parentId: string;
   isActive: boolean;
   groupId: string | null;
 }
 
-
-
-const token = localStorage.getItem("token");
-
- 
-export const  getStudents =  async (page: number, pageSize: number) => {
-    
-
-    try {
-      const response = await fetch(`${API_URL}/api/students/list?page=${page}&pageSize=${pageSize}`, {
-        method: 'GET',
-        headers: {
-          'accept': 'text/plain',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-  
-      const data:StudentsResponse = await response.json(); 
-      return data;
-    } catch (error) {
-      console.error('Failed to fetch students:', error);
-      throw error;
-    }
-  }
-  
-
-export const getStudent = async (id:string|null) => {
+export const getStudents = async (page: number, pageSize: number) => {
   try {
-    const response = await fetch(`${API_URL}/api/students/${id}`, {
-      method: 'GET',
-      headers: {
-        'accept': 'text/plain',
-        'Authorization': `Bearer ${token}`,
-      },
+    const params = new URLSearchParams({
+      page: page.toString(),
+      pageSize: pageSize.toString(),
     });
 
-    
-    if (response.status === 404) {
-      return null; // Not found
-    }
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    
-    const data:StudentDetails = await response.json(); 
-    
+    const data = await requests.get<StudentsResponse>(
+      "/api/students/list",
+      params
+    );
     return data;
   } catch (error) {
-    console.error('Failed to fetch students:', error);
+    console.error("Failed to fetch students:", error);
     throw error;
   }
+};
 
+export const getStudent = async (id: string | null) => {
+  try {
+    if (!id) return null;
 
-}  
+    try {
+      const data = await requests.get<StudentDetails>(`/api/students/${id}`);
+      return data;
+    } catch (error: unknown) {
+      if (
+        error instanceof AxiosError &&
+        error.response &&
+        error.response.status === 404
+      ) {
+        return null; // Not found
+      }
+      throw error;
+    }
+  } catch (error) {
+    console.error("Failed to fetch students:", error);
+    throw error;
+  }
+};

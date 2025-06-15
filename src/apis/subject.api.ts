@@ -1,30 +1,18 @@
-import { API_URL } from "../lib/config";
+import requests from "./agent";
 
 export interface Subject {
-    subjectId: number;
-    name: string;
-    schoolType: number;
-    teachers: any[]; 
-  }
+  subjectId: number;
+  name: string;
+  schoolType: number;
+}
 
-export async function getSubjectsBySchoolLevel(): Promise<any> {
-    const response = await fetch(`${API_URL}/api/Subjects/BySchoolLevel`, {
-      method: 'GET',
-      headers: {
-        'Accept': '*/*',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      }
-    });
-  
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-  
-    try {
-      const data = await response.json();
-      return data.subjects as Subject[];
-    } catch {
-      return await response.text();
-    }
+export async function getSubjectsBySchoolLevel(): Promise<Subject[]> {
+  try {
+    // Token is already handled in agent.ts interceptor
+    const data = await requests.get<Subject[]>("/api/Subjects/BySchoolLevel");
+    return data;
+  } catch (error) {
+    console.error("Error fetching subjects:", error);
+    throw error;
   }
-  
+}

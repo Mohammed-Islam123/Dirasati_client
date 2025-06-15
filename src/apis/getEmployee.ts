@@ -1,7 +1,5 @@
-import { API_URL } from "../lib/config";
-
-// src/apis/getEmployee.ts
-const token = localStorage.getItem("token");
+import { AxiosError } from "axios";
+import requests from "./agent";
 
 export interface Employee {
   employeeId: string;
@@ -49,25 +47,17 @@ export interface EmployeeDetails {
   lastModified: string | null; // ISO date string or null
 }
 
-
 export const getEmployees = async (page: number, pageSize: number) => {
   try {
-    const response = await fetch(
-      `${API_URL}/api/employees?page=${page}&pageSize=${pageSize}`,
-      {
-        method: "GET",
-        headers: {
-          accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
+    const params = new URLSearchParams({
+      page: page.toString(),
+      pageSize: pageSize.toString(),
+    });
+
+    const data = await requests.get<EmployeesResponse>(
+      "/api/employees",
+      params
     );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
-    const data: EmployeesResponse = await response.json();
 
     const totalPages = data.pagination.hasNext
       ? data.pagination.page + 1
@@ -83,32 +73,17 @@ export const getEmployees = async (page: number, pageSize: number) => {
   }
 };
 
-
-export const getEmployee = async (id:string|null) => {
+export const getEmployee = async (id: string | null) => {
   try {
-    const response = await fetch(`http://localhost:5080/api/employees/${id}`, {
-      method: 'GET',
-      headers: {
-        'accept': 'text/plain',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    if (!id) return null;
 
-    
-    if (response.status === 404) {
-      return null; // Not found
-    }
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    
-    const data:EmployeeDetails = await response.json(); 
-    
+    const data = await requests.get<EmployeeDetails>(`/api/employees/${id}`);
     return data;
   } catch (error) {
-    console.error('Failed to fetch students:', error);
+    if (error instanceof AxiosError && error.response?.status === 404) {
+      return null;
+    }
+    console.error("Failed to fetch employee:", error);
     throw error;
   }
-}  
-
-
+};

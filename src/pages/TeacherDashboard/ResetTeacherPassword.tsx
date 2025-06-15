@@ -1,36 +1,37 @@
-import Image1 from '../../assets/images/image copy 2.png';
-import React, { useState } from 'react';
-import { API_URL } from '../../lib/config';
+import Image1 from "../../assets/images/image copy 2.png";
+import React, { useState } from "react";
+import requests from "../../apis/agent";
+import { PasswordChangePayload } from "../../types/types";
 
 const ResetTeacherPassword = () => {
   const [formData, setFormData] = useState({
-    oldPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
   const [errors, setErrors] = useState({
-    oldPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState({
     old: false,
     new: false,
-    confirm: false
+    confirm: false,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     // Clear error when typing
     if (errors[name as keyof typeof errors]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
@@ -38,26 +39,26 @@ const ResetTeacherPassword = () => {
   const validateForm = () => {
     let valid = true;
     const newErrors = {
-      oldPassword: '',
-      newPassword: '',
-      confirmPassword: ''
+      oldPassword: "",
+      newPassword: "",
+      confirmPassword: "",
     };
 
     if (!formData.oldPassword) {
-      newErrors.oldPassword = 'Old password is required';
+      newErrors.oldPassword = "Old password is required";
       valid = false;
     }
 
     if (!formData.newPassword) {
-      newErrors.newPassword = 'New password is required';
+      newErrors.newPassword = "New password is required";
       valid = false;
     } else if (formData.newPassword.length < 8) {
-      newErrors.newPassword = 'Password must be at least 8 characters';
+      newErrors.newPassword = "Password must be at least 8 characters";
       valid = false;
     }
 
     if (formData.newPassword !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = "Passwords do not match";
       valid = false;
     }
 
@@ -70,58 +71,48 @@ const ResetTeacherPassword = () => {
     if (!validateForm()) return;
 
     setLoading(true);
-    const token = localStorage.getItem("token");
+
+    const payload: PasswordChangePayload = {
+      oldPassword: formData.oldPassword,
+      newPassword: formData.newPassword,
+    };
 
     try {
-      const res = await fetch(`${API_URL}/api/Accounts/change-password`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          oldPassword: formData.oldPassword,
-          newPassword: formData.newPassword
-        })
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to change password");
-      }
+      await requests.post<void>("/api/Accounts/change-password", payload);
 
       // Simple toast notification without library
-      const toast = document.createElement('div');
-      toast.style.position = 'fixed';
-      toast.style.top = '20px';
-      toast.style.right = '20px';
-      toast.style.padding = '12px 24px';
-      toast.style.background = '#4CAF50';
-      toast.style.color = 'white';
-      toast.style.borderRadius = '4px';
-      toast.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-      toast.style.zIndex = '1000';
-      toast.textContent = 'Password changed successfully!';
+      const toast = document.createElement("div");
+      toast.style.position = "fixed";
+      toast.style.top = "20px";
+      toast.style.right = "20px";
+      toast.style.padding = "12px 24px";
+      toast.style.background = "#4CAF50";
+      toast.style.color = "white";
+      toast.style.borderRadius = "4px";
+      toast.style.boxShadow = "0 2px 10px rgba(0,0,0,0.1)";
+      toast.style.zIndex = "1000";
+      toast.textContent = "Password changed successfully!";
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 3000);
 
       setFormData({
-        oldPassword: '',
-        newPassword: '',
-        confirmPassword: ''
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
       });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An error occurred";
-      const toast = document.createElement('div');
-      toast.style.position = 'fixed';
-      toast.style.top = '20px';
-      toast.style.right = '20px';
-      toast.style.padding = '12px 24px';
-      toast.style.background = '#F44336';
-      toast.style.color = 'white';
-      toast.style.borderRadius = '4px';
-      toast.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-      toast.style.zIndex = '1000';
+      const errorMessage =
+        err instanceof Error ? err.message : "An error occurred";
+      const toast = document.createElement("div");
+      toast.style.position = "fixed";
+      toast.style.top = "20px";
+      toast.style.right = "20px";
+      toast.style.padding = "12px 24px";
+      toast.style.background = "#F44336";
+      toast.style.color = "white";
+      toast.style.borderRadius = "4px";
+      toast.style.boxShadow = "0 2px 10px rgba(0,0,0,0.1)";
+      toast.style.zIndex = "1000";
       toast.textContent = errorMessage;
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 3000);
@@ -130,10 +121,10 @@ const ResetTeacherPassword = () => {
     }
   };
 
-  const togglePasswordVisibility = (field: 'old' | 'new' | 'confirm') => {
-    setShowPassword(prev => ({
+  const togglePasswordVisibility = (field: "old" | "new" | "confirm") => {
+    setShowPassword((prev) => ({
       ...prev,
-      [field]: !prev[field]
+      [field]: !prev[field],
     }));
   };
 
@@ -189,17 +180,22 @@ const ResetTeacherPassword = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-2xl font-bold text-[var(--color-yousra)] mb-8">Teacher Profile</h1>
-      
+      <h1 className="text-2xl font-bold text-[var(--color-yousra)] mb-8">
+        Teacher Profile
+      </h1>
+
       <div className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col md:flex-row">
         {/* Form Section */}
         <div className="w-full md:w-1/2 p-8">
           <h2 className="text-xl font-semibold mb-6">Change Password</h2>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Old Password */}
             <div className="space-y-2">
-              <label htmlFor="oldPassword" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="oldPassword"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Current Password
               </label>
               <div className="relative">
@@ -214,20 +210,25 @@ const ResetTeacherPassword = () => {
                 />
                 <button
                   type="button"
-                  onClick={() => togglePasswordVisibility('old')}
+                  onClick={() => togglePasswordVisibility("old")}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 >
                   <EyeIcon show={showPassword.old} />
                 </button>
               </div>
               {errors.oldPassword && (
-                <p className="text-sm text-red-600 mt-1">{errors.oldPassword}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.oldPassword}
+                </p>
               )}
             </div>
 
             {/* New Password */}
             <div className="space-y-2">
-              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="newPassword"
+                className="block text-sm font-medium text-gray-700"
+              >
                 New Password
               </label>
               <div className="relative">
@@ -242,20 +243,25 @@ const ResetTeacherPassword = () => {
                 />
                 <button
                   type="button"
-                  onClick={() => togglePasswordVisibility('new')}
+                  onClick={() => togglePasswordVisibility("new")}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 >
                   <EyeIcon show={showPassword.new} />
                 </button>
               </div>
               {errors.newPassword && (
-                <p className="text-sm text-red-600 mt-1">{errors.newPassword}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.newPassword}
+                </p>
               )}
             </div>
 
             {/* Confirm Password */}
             <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Confirm New Password
               </label>
               <div className="relative">
@@ -270,14 +276,16 @@ const ResetTeacherPassword = () => {
                 />
                 <button
                   type="button"
-                  onClick={() => togglePasswordVisibility('confirm')}
+                  onClick={() => togglePasswordVisibility("confirm")}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 >
                   <EyeIcon show={showPassword.confirm} />
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="text-sm text-red-600 mt-1">{errors.confirmPassword}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.confirmPassword}
+                </p>
               )}
             </div>
 
@@ -296,8 +304,11 @@ const ResetTeacherPassword = () => {
                   "Change Password"
                 )}
               </button>
-              
-              <a href="#" className="text-sm text-[var(--color-yousra)] hover:underline">
+
+              <a
+                href="#"
+                className="text-sm text-[var(--color-yousra)] hover:underline"
+              >
                 Forgot password?
               </a>
             </div>
@@ -306,9 +317,9 @@ const ResetTeacherPassword = () => {
 
         {/* Image Section */}
         <div className="w-full md:w-1/2 bg-gray-50 flex items-center justify-center p-8">
-          <img 
-            src={Image1} 
-            alt="Teacher profile illustration" 
+          <img
+            src={Image1}
+            alt="Teacher profile illustration"
             className="max-h-96 object-contain"
           />
         </div>

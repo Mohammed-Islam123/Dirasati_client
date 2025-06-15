@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react"
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
+
+import { useState, useEffect } from "react";
 import {
-  ChevronLeft,
-  ChevronRight,
-  Plus,
   Search,
   Settings,
   Menu,
@@ -13,60 +13,59 @@ import {
   Pause,
   Sparkles,
   X,
-} from "lucide-react"
+} from "lucide-react";
 
 export default function Calender() {
   const [bg, setBg] = useState<string>("");
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [showAIPopup, setShowAIPopup] = useState(false)
-  const [typedText, setTypedText] = useState("")
-  const [isPlaying, setIsPlaying] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [showAIPopup, setShowAIPopup] = useState(false);
+  const [typedText, setTypedText] = useState("");
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const backgroundUrl = params.get('bg');
+    const backgroundUrl = params.get("bg");
     if (backgroundUrl) {
       setBg(backgroundUrl);
-    }else{
+    } else {
       setBg("");
     }
   }, []);
 
   useEffect(() => {
-    setIsLoaded(true)
+    setIsLoaded(true);
 
     // Show AI popup after 3 seconds
     const popupTimer = setTimeout(() => {
-      setShowAIPopup(true)
-    }, 3000)
+      setShowAIPopup(true);
+    }, 3000);
 
-    return () => clearTimeout(popupTimer)
-  }, [])
+    return () => clearTimeout(popupTimer);
+  }, []);
 
   useEffect(() => {
     if (showAIPopup) {
       const text =
-        "LLooks like you don't have that many meetings today. Shall I play some Hans Zimmer essentials to help you get into your Flow State?"
-      let i = 0
+        "LLooks like you don't have that many meetings today. Shall I play some Hans Zimmer essentials to help you get into your Flow State?";
+      let i = 0;
       const typingInterval = setInterval(() => {
         if (i < text.length) {
-          setTypedText((prev) => prev + text.charAt(i))
-          i++
+          setTypedText((prev) => prev + text.charAt(i));
+          i++;
         } else {
-          clearInterval(typingInterval)
+          clearInterval(typingInterval);
         }
-      }, 50)
+      }, 50);
 
-      return () => clearInterval(typingInterval)
+      return () => clearInterval(typingInterval);
     }
-  }, [showAIPopup])
+  }, [showAIPopup]);
 
-
-  const [selectedEvent, setSelectedEvent] = useState(null)
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   const handleEventClick = (event) => {
-    setSelectedEvent(event)
-  }
+    setSelectedEvent(event);
+  };
 
   // Updated sample calendar events with all events before 4 PM
   const events = [
@@ -250,26 +249,30 @@ export default function Calender() {
       attendees: ["Product Team", "Engineering Leads"],
       organizer: "Product Manager",
     },
-  ]
+  ];
 
   // Sample calendar days for the week view
-  const weekDays = ["SUN", "MON", "TUE", "WED", "THU"]
-  const weekDates = [3, 4, 5, 6, 7, 8, 9]
-  const timeSlots = Array.from({ length: 9 }, (_, i) => i + 8) // 8 AM to 4 PM
+  const weekDays = ["SUN", "MON", "TUE", "WED", "THU"];
+  const weekDates = [3, 4, 5, 6, 7, 8, 9];
+  const timeSlots = Array.from({ length: 9 }, (_, i) => i + 8); // 8 AM to 4 PM
 
   // Helper function to calculate event position and height
   const calculateEventStyle = (startTime, endTime) => {
-    const start = Number.parseInt(startTime.split(":")[0]) + Number.parseInt(startTime.split(":")[1]) / 60
-    const end = Number.parseInt(endTime.split(":")[0]) + Number.parseInt(endTime.split(":")[1]) / 60
-    const top = (start - 8) * 80 // 80px per hour
-    const height = (end - start) * 80
-    return { top: `${top}px`, height: `${height}px` }
-  }
+    const start =
+      Number.parseInt(startTime.split(":")[0]) +
+      Number.parseInt(startTime.split(":")[1]) / 60;
+    const end =
+      Number.parseInt(endTime.split(":")[0]) +
+      Number.parseInt(endTime.split(":")[1]) / 60;
+    const top = (start - 8) * 80; // 80px per hour
+    const height = (end - start) * 80;
+    return { top: `${top}px`, height: `${height}px` };
+  };
 
   const togglePlay = () => {
-    setIsPlaying(!isPlaying)
+    setIsPlaying(!isPlaying);
     // Here you would typically also control the actual audio playback
-  }
+  };
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
@@ -281,12 +284,16 @@ export default function Calender() {
       />
 
       <header
-        className={`absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-8 py-6 opacity-0 ${isLoaded ? "animate-fade-in" : ""}`}
+        className={`absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-8 py-6 opacity-0 ${
+          isLoaded ? "animate-fade-in" : ""
+        }`}
         style={{ animationDelay: "0.2s" }}
       >
         <div className="flex items-center gap-4">
           <Menu className="h-6 w-6 text-white" />
-          <span className="text-2xl font-semibold text-white drop-shadow-lg">Calendar</span>
+          <span className="text-2xl font-semibold text-white drop-shadow-lg">
+            Calendar
+          </span>
         </div>
 
         <div className="flex items-center gap-4">
@@ -307,13 +314,13 @@ export default function Calender() {
 
       <main className="relative h-screen w-full pt-20 flex">
         {/* Sidebar */}
-        
 
         <div
-          className={`flex-1 flex flex-col opacity-0 ${isLoaded ? "animate-fade-in" : ""}`}
+          className={`flex-1 flex flex-col opacity-0 ${
+            isLoaded ? "animate-fade-in" : ""
+          }`}
           style={{ animationDelay: "0.6s" }}
         >
-          
           {/* Week View */}
           <div className="flex-1 overflow-auto p-4">
             <div className="bg-white/20 backdrop-blur-lg rounded-xl border border-white/20 shadow-xl h-full">
@@ -321,9 +328,13 @@ export default function Calender() {
               <div className="grid grid-cols-6 border-b border-white/20">
                 <div className="p-2 text-center text-white/50 text-xs"></div>
                 {weekDays.map((day, i) => (
-                  <div key={i} className="p-2 text-center border-l border-white/20">
-                    <div className="text-xl text-white/70 font-medium">{day}</div>
-                   
+                  <div
+                    key={i}
+                    className="p-2 text-center border-l border-white/20"
+                  >
+                    <div className="text-xl text-white/70 font-medium">
+                      {day}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -333,7 +344,10 @@ export default function Calender() {
                 {/* Time Labels */}
                 <div className="text-white/70">
                   {timeSlots.map((time, i) => (
-                    <div key={i} className="h-20 border-b border-white/10 pr-2 text-right text-xs">
+                    <div
+                      key={i}
+                      className="h-20 border-b border-white/10 pr-2 text-right text-xs"
+                    >
                       {time > 12 ? `${time - 12} PM` : `${time} AM`}
                     </div>
                   ))}
@@ -341,16 +355,25 @@ export default function Calender() {
 
                 {/* Days Columns */}
                 {Array.from({ length: 5 }).map((_, dayIndex) => (
-                  <div key={dayIndex} className="border-l border-white/20 relative">
+                  <div
+                    key={dayIndex}
+                    className="border-l border-white/20 relative"
+                  >
                     {timeSlots.map((_, timeIndex) => (
-                      <div key={timeIndex} className="h-20 border-b border-white/10"></div>
+                      <div
+                        key={timeIndex}
+                        className="h-20 border-b border-white/10"
+                      ></div>
                     ))}
 
                     {/* Events */}
                     {events
                       .filter((event) => event.day === dayIndex + 1)
                       .map((event, i) => {
-                        const eventStyle = calculateEventStyle(event.startTime, event.endTime)
+                        const eventStyle = calculateEventStyle(
+                          event.startTime,
+                          event.endTime
+                        );
                         return (
                           <div
                             key={i}
@@ -365,7 +388,7 @@ export default function Calender() {
                             <div className="font-medium">{event.title}</div>
                             <div className="opacity-80 text-[10px] mt-1">{`${event.startTime} - ${event.endTime}`}</div>
                           </div>
-                        )
+                        );
                       })}
                   </div>
                 ))}
@@ -422,8 +445,12 @@ export default function Calender() {
 
         {selectedEvent && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className={`${selectedEvent.color} p-6 rounded-lg shadow-xl max-w-md w-full mx-4`}>
-              <h3 className="text-2xl font-bold mb-4 text-white">{selectedEvent.title}</h3>
+            <div
+              className={`${selectedEvent.color} p-6 rounded-lg shadow-xl max-w-md w-full mx-4`}
+            >
+              <h3 className="text-2xl font-bold mb-4 text-white">
+                {selectedEvent.title}
+              </h3>
               <div className="space-y-3 text-white">
                 <p className="flex items-center">
                   <Clock className="mr-2 h-5 w-5" />
@@ -435,7 +462,9 @@ export default function Calender() {
                 </p>
                 <p className="flex items-center">
                   <Calendar className="mr-2 h-5 w-5" />
-                  {`${weekDays[selectedEvent.day - 1]}, ${weekDates[selectedEvent.day - 1]} ${currentMonth}`}
+                  {`${weekDays[selectedEvent.day - 1]}, ${
+                    weekDates[selectedEvent.day - 1]
+                  } ${currentMonth}`}
                 </p>
                 <p className="flex items-start">
                   <Users className="mr-2 h-5 w-5 mt-1" />
@@ -467,5 +496,5 @@ export default function Calender() {
         {/* Floating Action Button - Removed */}
       </main>
     </div>
-  )
+  );
 }

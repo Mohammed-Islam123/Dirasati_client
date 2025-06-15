@@ -1,5 +1,5 @@
-import { API_URL } from "../lib/config"
-
+import { AxiosError } from "axios";
+import requests from "./agent";
 
 export interface Teacher {
   teacherId: string;
@@ -16,61 +16,30 @@ export interface Teacher {
   address: string | null;
 }
 
-
-
-
-const token = localStorage.getItem("token");
-
 export const getTeachers = async (): Promise<Teacher[] | null> => {
   try {
-    const response = await fetch(`${API_URL}/api/teacher`, {
-      method: 'GET',
-      headers: {
-        'accept': 'text/plain',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    if (response.status === 404) {
-      return null;
-    }
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
-    const data: Teacher[] = await response.json(); // ✅ liste d'enseignants
+    const data = await requests.get<Teacher[]>("/api/teacher");
     return data;
   } catch (error) {
-    console.error('Failed to fetch teachers:', error);
+    if (error instanceof AxiosError && error.response?.status === 404) {
+      return null;
+    }
+    console.error("Failed to fetch teachers:", error);
     return null;
   }
 };
 
-
-export const getTeacher = async (id:string|null) => {
+export const getTeacher = async (id: string | null) => {
   try {
-    const response = await fetch(`${API_URL}/api/teacher/${id}`, {
-      method: 'GET',
-      headers: {
-        'accept': 'text/plain',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    if (!id) return null;
 
-    
-    if (response.status === 404) {
-      return null; // Not found
-    }
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    
-    const data:Teacher = await response.json(); 
-    
+    const data = await requests.get<Teacher>(`/api/teacher/${id}`);
     return data;
   } catch (error) {
-    console.error('Failed to fetch students:', error);
+    if (error instanceof AxiosError && error.response?.status === 404) {
+      return null;
+    }
+    console.error("Failed to fetch teacher:", error);
     throw error;
   }
-}  
+};
